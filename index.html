@@ -209,6 +209,174 @@
     box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.6);
   }
 
+  /* SETTINGS TRIGGER & PANEL */
+  .settings-trigger {
+    display: flex;
+    justify-content: center;
+    margin: -8px 0 11px;
+  }
+  .settings-trigger button {
+    background: rgba(255, 255, 255, 0.7);
+    border: 1.5px solid var(--border);
+    color: var(--pink-500);
+    padding: 4px 18px;
+    border-radius: 999px;
+    font-family: 'Gowun Dodum', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.25s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .settings-trigger button:hover {
+    background: rgba(255, 230, 240, 0.7);
+    border-color: var(--pink-300);
+    color: var(--pink-600);
+    transform: translateY(-1px);
+  }
+  .settings-trigger button .caret {
+    display: inline-block;
+    font-size: 0.9rem;
+    transition: transform 0.3s ease;
+  }
+  .settings-trigger button[aria-expanded="true"] {
+    background: linear-gradient(135deg, var(--pink-300), var(--pink-500));
+    color: white;
+    border-color: transparent;
+    box-shadow: 0 4px 12px rgba(255, 107, 157, 0.3);
+  }
+  .settings-trigger button[aria-expanded="true"] .caret {
+    transform: rotate(180deg);
+  }
+
+  .settings-panel {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                margin-bottom 0.3s ease, opacity 0.3s ease;
+    margin-bottom: 0;
+    opacity: 0;
+  }
+  .settings-panel.expanded {
+    grid-template-rows: 1fr;
+    margin-bottom: 26px;
+    opacity: 1;
+  }
+  .settings-panel .settings-inner {
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  /* LUNCH SECTION */
+  .lunch-section {
+    background: rgba(255, 245, 250, 0.6);
+    border-radius: 18px;
+    padding: 20px 22px;
+    border: 1.5px dashed var(--border);
+  }
+  .lunch-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+  }
+  .lunch-header .section-label { margin-bottom: 0; }
+
+  .toggle {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+    user-select: none;
+    width: 52px;
+    height: 30px;
+    flex-shrink: 0;
+  }
+  .toggle input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .toggle-track {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: #f0d4e0;
+    border-radius: 999px;
+    position: relative;
+    transition: background 0.25s ease;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.08);
+  }
+  .toggle-thumb {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 24px;
+    height: 24px;
+    background: white;
+    border-radius: 50%;
+    transition: left 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.18);
+  }
+  .toggle input:checked ~ .toggle-track {
+    background: linear-gradient(135deg, var(--pink-300), var(--pink-500));
+  }
+  .toggle input:checked ~ .toggle-track .toggle-thumb {
+    left: 25px;
+  }
+
+  .lunch-time-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+  }
+  .time-field {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .time-field .mini-label {
+    font-size: 0.78rem;
+    color: var(--pink-500);
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-align: center;
+  }
+  .time-field input[type="time"] {
+    width: 100%;
+    font-family: 'Gaegu', cursive;
+    font-weight: 700;
+    font-size: 1.15rem;
+    text-align: center;
+    color: var(--pink-600);
+    padding: 10px 12px;
+    transition: opacity 0.25s, filter 0.25s;
+  }
+  .time-separator {
+    color: var(--text-soft);
+    font-size: 1.1rem;
+    font-weight: 700;
+    padding-bottom: 14px;
+  }
+  .lunch-hint {
+    margin-top: 12px;
+    text-align: center;
+    color: var(--text-soft);
+    font-size: 0.85rem;
+  }
+  .lunch-section.disabled .time-field input,
+  .lunch-section.disabled .time-separator,
+  .lunch-section.disabled .time-field .mini-label {
+    opacity: 0.35;
+    pointer-events: none;
+    filter: grayscale(0.5);
+  }
+  .lunch-section.disabled .lunch-hint {
+    opacity: 0.5;
+  }
+
   /* WORKDAY CHIPS */
   .day-chips {
     display: flex;
@@ -525,6 +693,38 @@
     </h1>
   </header>
 
+  <div class="settings-trigger">
+    <button id="settingsToggle" aria-expanded="false" aria-controls="settingsPanel">
+      자세한 설정 <span class="caret">▾</span>
+    </button>
+  </div>
+
+  <div class="settings-panel" id="settingsPanel">
+    <div class="settings-inner">
+      <section class="lunch-section">
+        <div class="lunch-header">
+          <span class="section-label">점심시간</span>
+          <label class="toggle" aria-label="점심시간 사용">
+            <input type="checkbox" id="lunchToggle" checked>
+            <span class="toggle-track"><span class="toggle-thumb"></span></span>
+          </label>
+        </div>
+        <div class="lunch-time-row">
+          <div class="time-field">
+            <span class="mini-label">시작</span>
+            <input type="time" id="lunchStartTime" value="12:00">
+          </div>
+          <span class="time-separator">~</span>
+          <div class="time-field">
+            <span class="mini-label">종료</span>
+            <input type="time" id="lunchEndTime" value="13:00">
+          </div>
+        </div>
+        <p class="lunch-hint">점심시간이 근무 시간에서 자동으로 차감돼요</p>
+      </section>
+    </div>
+  </div>
+
   <section class="check-in-section">
     <label class="section-label" for="checkIn">오늘 출근 시간</label>
     <input type="time" id="checkIn" value="09:00">
@@ -582,6 +782,12 @@
   const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
 
   const checkInInput = document.getElementById('checkIn');
+  const lunchToggle  = document.getElementById('lunchToggle');
+  const lunchStartInput = document.getElementById('lunchStartTime');
+  const lunchEndInput = document.getElementById('lunchEndTime');
+  const lunchSection = document.querySelector('.lunch-section');
+  const settingsToggle = document.getElementById('settingsToggle');
+  const settingsPanel = document.getElementById('settingsPanel');
   const totalHoursEl = document.getElementById('totalHours');
   const dayInputsEl  = document.getElementById('dayInputs');
   const dayChips     = document.querySelectorAll('#dayChips input[type="checkbox"]');
@@ -611,6 +817,43 @@
     const d = new Date();
     d.setHours(parts[0], parts[1], 0, 0);
     return d;
+  }
+
+  function parseTimeMs(value) {
+    if (!value) return null;
+    const parts = value.split(':').map(Number);
+    if (parts.length < 2 || isNaN(parts[0]) || isNaN(parts[1])) return null;
+    const d = new Date();
+    d.setHours(parts[0], parts[1], 0, 0);
+    return d.getTime();
+  }
+
+  function getLunchPeriod() {
+    if (!lunchToggle.checked) return null;
+    const start = parseTimeMs(lunchStartInput.value);
+    const end = parseTimeMs(lunchEndInput.value);
+    if (start == null || end == null || end <= start) return null;
+    return { start, end };
+  }
+
+  // Overlap between [a1, a2] and [b1, b2]
+  function calcLunchDeduction(now, checkInMs, lunch) {
+    if (!lunch) return 0;
+    const overlapStart = Math.max(checkInMs, lunch.start);
+    const overlapEnd = Math.min(now, lunch.end);
+    return Math.max(0, overlapEnd - overlapStart);
+  }
+
+  // End time = checkIn + workMs + (lunch portion that falls in work period)
+  function computeEndTime(checkInMs, workMs, lunch) {
+    if (!lunch) return checkInMs + workMs;
+    if (lunch.end <= checkInMs) return checkInMs + workMs;
+    if (lunch.start >= checkInMs + workMs) return checkInMs + workMs;
+    return checkInMs + workMs + (lunch.end - Math.max(checkInMs, lunch.start));
+  }
+
+  function updateLunchUI() {
+    lunchSection.classList.toggle('disabled', !lunchToggle.checked);
   }
 
   function makeEl(tag, opts) {
@@ -733,8 +976,12 @@
 
     if (todayIsWorkday && checkIn) {
       const now = Date.now();
-      todayMs = Math.max(0, now - checkIn.getTime());
-      const endTime = checkIn.getTime() + MS_PER_DAY;
+      const checkInMs = checkIn.getTime();
+      const lunch = getLunchPeriod();
+      const lunchDeduction = calcLunchDeduction(now, checkInMs, lunch);
+
+      todayMs = Math.max(0, (now - checkInMs) - lunchDeduction);
+      const endTime = computeEndTime(checkInMs, MS_PER_DAY, lunch);
       untilEndMs = Math.max(0, endTime - now);
       workedMs += todayMs;
     }
@@ -782,6 +1029,19 @@
 
   checkInInput.addEventListener('input', update);
 
+  lunchToggle.addEventListener('change', () => {
+    updateLunchUI();
+    update();
+  });
+  lunchStartInput.addEventListener('input', update);
+  lunchEndInput.addEventListener('input', update);
+
+  settingsToggle.addEventListener('click', () => {
+    const expanded = settingsToggle.getAttribute('aria-expanded') === 'true';
+    settingsToggle.setAttribute('aria-expanded', String(!expanded));
+    settingsPanel.classList.toggle('expanded', !expanded);
+  });
+
   dayInputsEl.addEventListener('input', e => {
     const t = e.target;
     if (t.matches('input[type="number"]')) {
@@ -794,6 +1054,7 @@
     }
   });
 
+  updateLunchUI();
   buildDayInputs();
   update();
 
