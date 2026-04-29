@@ -628,11 +628,6 @@
     border-radius: 16px;
     padding: 16px 18px;
     text-align: center;
-    transition: transform 0.2s, box-shadow 0.2s;
-  }
-  .small-stat:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
   }
   .small-label {
     font-size: 0.92rem;
@@ -683,24 +678,24 @@
   .reset-all-wrap {
     display: flex;
     justify-content: center;
-    margin-top: 20px;
+    margin-top: 16px;
   }
   .reset-all-btn {
-    background: transparent;
-    border: 1.5px solid var(--border);
-    color: var(--text-soft);
-    padding: 10px 28px;
+    background: rgba(212, 182, 255, 0.18);
+    border: 1.5px solid var(--lavender);
+    color: #8a6cd0;
+    padding: 9px 26px;
     border-radius: 999px;
     font-family: 'Gowun Dodum', sans-serif;
-    font-size: 0.92rem;
+    font-size: 0.88rem;
     font-weight: 700;
     cursor: pointer;
     transition: all 0.2s;
   }
   .reset-all-btn:hover {
-    border-color: var(--pink-300);
-    color: var(--pink-500);
-    background: rgba(255, 230, 240, 0.5);
+    background: rgba(212, 182, 255, 0.32);
+    border-color: #b89aff;
+    color: #6e4fb5;
     transform: translateY(-1px);
   }
 
@@ -777,6 +772,10 @@
         </div>
         <p class="lunch-hint">점심시간이 근무 시간에서 자동으로 차감돼요</p>
       </section>
+
+      <div class="reset-all-wrap">
+        <button type="button" class="reset-all-btn" id="resetAllBtn">전체 초기화</button>
+      </div>
     </div>
   </div>
 
@@ -827,10 +826,6 @@
       <p class="small-value" id="untilEnd">--:--:--</p>
     </div>
   </section>
-
-  <div class="reset-all-wrap">
-    <button type="button" class="reset-all-btn" id="resetAllBtn">전체 초기화</button>
-  </div>
 
   <footer>
     <span class="heart-mini"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.5-7 10-7 10z"/></svg></span>
