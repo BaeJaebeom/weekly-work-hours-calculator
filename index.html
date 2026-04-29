@@ -649,6 +649,61 @@
     font-variant-numeric: tabular-nums;
   }
 
+  /* SECTION HEADER WITH ACTION */
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+    gap: 10px;
+  }
+  .section-header .section-label { margin-bottom: 0; }
+
+  /* RESET BUTTONS */
+  .reset-btn {
+    background: transparent;
+    border: 1.5px solid var(--border);
+    color: var(--text-soft);
+    padding: 5px 14px;
+    border-radius: 999px;
+    font-family: 'Gowun Dodum', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+  .reset-btn:hover {
+    border-color: var(--pink-300);
+    color: var(--pink-500);
+    background: rgba(255, 230, 240, 0.5);
+    transform: translateY(-1px);
+  }
+
+  .reset-all-wrap {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+  }
+  .reset-all-btn {
+    background: transparent;
+    border: 1.5px solid var(--border);
+    color: var(--text-soft);
+    padding: 10px 28px;
+    border-radius: 999px;
+    font-family: 'Gowun Dodum', sans-serif;
+    font-size: 0.92rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .reset-all-btn:hover {
+    border-color: var(--pink-300);
+    color: var(--pink-500);
+    background: rgba(255, 230, 240, 0.5);
+    transform: translateY(-1px);
+  }
+
   footer {
     text-align: center;
     margin-top: 26px;
@@ -745,7 +800,10 @@
   </section>
 
   <section class="day-times-section">
-    <span class="section-label">요일별 일한 시간</span>
+    <div class="section-header">
+      <span class="section-label">요일별 일한 시간</span>
+      <button type="button" class="reset-btn" id="resetDayHoursBtn">초기화</button>
+    </div>
     <div id="dayInputs"></div>
   </section>
 
@@ -770,6 +828,10 @@
     </div>
   </section>
 
+  <div class="reset-all-wrap">
+    <button type="button" class="reset-all-btn" id="resetAllBtn">전체 초기화</button>
+  </div>
+
   <footer>
     <span class="heart-mini"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.5-7 10-7 10z"/></svg></span>
   </footer>
@@ -780,6 +842,14 @@
   const HOURS_PER_DAY = 8;
   const MS_PER_DAY = HOURS_PER_DAY * 3600 * 1000;
   const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+  const STORAGE_KEY = 'workTrackerV1';
+  const DEFAULTS = {
+    checkIn: '09:00',
+    lunchToggle: true,
+    lunchStart: '12:00',
+    lunchEnd: '13:00',
+    workdays: [1, 2, 3, 4, 5]
+  };
 
   const checkInInput = document.getElementById('checkIn');
   const lunchToggle  = document.getElementById('lunchToggle');
@@ -788,6 +858,8 @@
   const lunchSection = document.querySelector('.lunch-section');
   const settingsToggle = document.getElementById('settingsToggle');
   const settingsPanel = document.getElementById('settingsPanel');
+  const resetDayHoursBtn = document.getElementById('resetDayHoursBtn');
+  const resetAllBtn = document.getElementById('resetAllBtn');
   const totalHoursEl = document.getElementById('totalHours');
   const dayInputsEl  = document.getElementById('dayInputs');
   const dayChips     = document.querySelectorAll('#dayChips input[type="checkbox"]');
@@ -854,6 +926,74 @@
 
   function updateLunchUI() {
     lunchSection.classList.toggle('disabled', !lunchToggle.checked);
+  }
+
+  // ---- localStorage ----
+  function saveState() {
+    try {
+      const checked = [...dayChips]
+        .filter(c => c.checked)
+        .map(c => +c.closest('.chip').dataset.day);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        checkIn: checkInInput.value,
+        lunchToggle: lunchToggle.checked,
+        lunchStart: lunchStartInput.value,
+        lunchEnd: lunchEndInput.value,
+        workdays: checked,
+        dayHours: dayState
+      }));
+    } catch (e) { /* private mode etc. — ignore */ }
+  }
+
+  function loadState() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      const d = JSON.parse(raw);
+      if (typeof d.checkIn === 'string') checkInInput.value = d.checkIn;
+      if (typeof d.lunchToggle === 'boolean') lunchToggle.checked = d.lunchToggle;
+      if (typeof d.lunchStart === 'string') lunchStartInput.value = d.lunchStart;
+      if (typeof d.lunchEnd === 'string') lunchEndInput.value = d.lunchEnd;
+      if (Array.isArray(d.workdays)) {
+        dayChips.forEach(c => {
+          const day = +c.closest('.chip').dataset.day;
+          c.checked = d.workdays.includes(day);
+        });
+      }
+      if (d.dayHours && typeof d.dayHours === 'object') {
+        Object.keys(d.dayHours).forEach(k => {
+          const v = d.dayHours[k];
+          if (v && typeof v === 'object') dayState[k] = { h: v.h ?? '', m: v.m ?? '' };
+        });
+      }
+    } catch (e) { /* corrupted — ignore */ }
+  }
+
+  function clearDayState() {
+    Object.keys(dayState).forEach(k => delete dayState[k]);
+  }
+
+  function resetDayHours() {
+    clearDayState();
+    saveState();
+    buildDayInputs();
+    update();
+  }
+
+  function resetAll() {
+    checkInInput.value = DEFAULTS.checkIn;
+    lunchToggle.checked = DEFAULTS.lunchToggle;
+    lunchStartInput.value = DEFAULTS.lunchStart;
+    lunchEndInput.value = DEFAULTS.lunchEnd;
+    dayChips.forEach(c => {
+      const day = +c.closest('.chip').dataset.day;
+      c.checked = DEFAULTS.workdays.includes(day);
+    });
+    clearDayState();
+    saveState();
+    updateLunchUI();
+    buildDayInputs();
+    update();
   }
 
   function makeEl(tag, opts) {
@@ -1022,19 +1162,32 @@
 
   dayChips.forEach(c => {
     c.addEventListener('change', () => {
+      const day = +c.closest('.chip').dataset.day;
+      delete dayState[day];
+      saveState();
       buildDayInputs();
       update();
     });
   });
 
-  checkInInput.addEventListener('input', update);
+  checkInInput.addEventListener('input', () => {
+    saveState();
+    update();
+  });
 
   lunchToggle.addEventListener('change', () => {
     updateLunchUI();
+    saveState();
     update();
   });
-  lunchStartInput.addEventListener('input', update);
-  lunchEndInput.addEventListener('input', update);
+  lunchStartInput.addEventListener('input', () => {
+    saveState();
+    update();
+  });
+  lunchEndInput.addEventListener('input', () => {
+    saveState();
+    update();
+  });
 
   settingsToggle.addEventListener('click', () => {
     const expanded = settingsToggle.getAttribute('aria-expanded') === 'true';
@@ -1050,10 +1203,15 @@
       const key = type === 'hours' ? 'h' : 'm';
       if (!dayState[day]) dayState[day] = { h: '', m: '' };
       dayState[day][key] = t.value;
+      saveState();
       update();
     }
   });
 
+  resetDayHoursBtn.addEventListener('click', resetDayHours);
+  resetAllBtn.addEventListener('click', resetAll);
+
+  loadState();
   updateLunchUI();
   buildDayInputs();
   update();
