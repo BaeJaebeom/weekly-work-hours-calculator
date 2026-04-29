@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>주간 근무 계산기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@300;400;700&family=Gowun+Dodum&family=Hi+Melody&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --pink-50:  #fff5fa;
+    --pink-100: #ffeef5;
+    --pink-200: #ffd6e7;
+    --pink-300: #ffb3d1;
+    --pink-400: #ff8fb7;
+    --pink-500: #ff6b9d;
+    --pink-600: #e85a8a;
+    --lavender: #d4b6ff;
+    --lavender-soft: #ebd9ff;
+    --mint:     #b8e8d2;
+    --cream:    #fff5cd;
+    --peach:    #ffd9c0;
+    --text:     #5a4555;
+    --text-soft: #8a7480;
+    --border:   #ffd0e2;
+    --shadow-md: 0 12px 32px rgba(255, 143, 183, 0.18);
+    --shadow-lg: 0 24px 64px rgba(255, 143, 183, 0.22);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { font-size: 16px; }
+
+  body {
+    font-family: 'Gowun Dodum', 'Hi Melody', sans-serif;
+    background:
+      radial-gradient(ellipse at top left,    #ffd9ea 0%, transparent 55%),
+      radial-gradient(ellipse at top right,   var(--lavender-soft) 0%, transparent 55%),
+      radial-gradient(ellipse at bottom 20% left, var(--peach) 0%, transparent 55%),
+      linear-gradient(135deg, #fff5fa 0%, #ffeef5 50%, #fef0f7 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
+    color: var(--text);
+    overflow-x: hidden;
+    position: relative;
+    padding: 24px 16px;
+    line-height: 1.5;
+  }
+
+  /* Floating decorative blobs */
+  .bg-decor::before,
+  .bg-decor::after,
+  .bg-decor span {
+    content: '';
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(70px);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .bg-decor::before {
+    top: -8%;
+    left: -8%;
+    width: 420px;
+    height: 420px;
+    background: radial-gradient(circle, var(--pink-200) 0%, transparent 70%);
+    animation: floatA 14s ease-in-out infinite;
+    opacity: 0.7;
+  }
+  .bg-decor::after {
+    bottom: -10%;
+    right: -10%;
+    width: 520px;
+    height: 520px;
+    background: radial-gradient(circle, var(--lavender) 0%, transparent 70%);
+    opacity: 0.5;
+    animation: floatB 18s ease-in-out infinite;
+  }
+  .bg-decor span {
+    top: 45%;
+    right: 5%;
+    width: 280px;
+    height: 280px;
+    background: radial-gradient(circle, var(--peach) 0%, transparent 70%);
+    opacity: 0.45;
+    animation: floatA 12s ease-in-out infinite reverse;
+  }
+  @keyframes floatA {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33%      { transform: translate(40px, -30px) scale(1.05); }
+    66%      { transform: translate(-30px, 30px) scale(0.95); }
+  }
+  @keyframes floatB {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50%      { transform: translate(-50px, -40px) scale(1.1); }
+  }
+
+  .app {
+    position: relative;
+    z-index: 1;
+    max-width: 640px;
+    margin: 24px auto;
+    padding: 44px 38px;
+    background: rgba(255, 255, 255, 0.62);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border: 1.5px solid rgba(255, 255, 255, 0.85);
+    border-radius: 32px;
+    box-shadow: var(--shadow-lg);
+  }
+
+  /* HEADER */
+  header {
+    text-align: center;
+    margin-bottom: 36px;
+  }
+  header h1 {
+    font-family: 'Gaegu', cursive;
+    font-size: clamp(2.4rem, 6vw, 3.4rem);
+    font-weight: 700;
+    color: var(--pink-600);
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    text-shadow:
+      2px 2px 0 rgba(255, 208, 226, 0.6),
+      -1px -1px 0 rgba(255, 255, 255, 0.9);
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4em;
+    flex-wrap: wrap;
+  }
+  .heart-icon {
+    display: inline-block;
+    width: 0.65em;
+    height: 0.65em;
+    color: var(--pink-400);
+    animation: heartbeat 1.6s ease-in-out infinite;
+    transform-origin: center;
+  }
+  .heart-icon svg { width: 100%; height: 100%; display: block; }
+  @keyframes heartbeat {
+    0%, 100% { transform: scale(1); }
+    10%, 30% { transform: scale(1.18); }
+    20%, 40% { transform: scale(0.92); }
+  }
+  /* SECTION */
+  section { margin-bottom: 26px; }
+
+  .section-label {
+    display: block;
+    font-family: 'Gowun Dodum', sans-serif;
+    font-size: 1.05rem;
+    color: var(--pink-500);
+    margin-bottom: 16px;
+    letter-spacing: 0.12em;
+    position: relative;
+    padding-left: 22px;
+    font-weight: 700;
+  }
+  .section-label::before {
+    content: '✿';
+    position: absolute;
+    left: 0;
+    top: 0;
+    color: var(--pink-400);
+    font-size: 1.15rem;
+  }
+
+  /* INPUTS */
+  input[type="time"],
+  input[type="number"] {
+    font-family: 'Gowun Dodum', sans-serif;
+    background: rgba(255, 255, 255, 0.9);
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    padding: 12px 18px;
+    font-size: 1rem;
+    color: var(--text);
+    outline: none;
+    transition: all 0.2s ease;
+    font-variant-numeric: tabular-nums;
+  }
+  input[type="time"]:focus,
+  input[type="number"]:focus {
+    border-color: var(--pink-400);
+    background: white;
+    box-shadow: 0 0 0 4px rgba(255, 143, 183, 0.18);
+  }
+  input[type="time"]::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    filter: hue-rotate(310deg) saturate(2);
+    opacity: 0.65;
+  }
+  input[type="time"]::-webkit-calendar-picker-indicator:hover { opacity: 1; }
+
+  #checkIn {
+    width: 100%;
+    font-size: 1.7rem;
+    text-align: center;
+    padding: 18px 22px;
+    letter-spacing: 0.05em;
+    font-family: 'Gaegu', cursive;
+    font-weight: 700;
+    color: var(--pink-600);
+    border-width: 2.5px;
+    box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.6);
+  }
+
+  /* WORKDAY CHIPS */
+  .day-chips {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .chip {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.75);
+    border: 2px solid var(--border);
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    font-family: 'Gaegu', cursive;
+    font-weight: 700;
+    font-size: 1.25rem;
+    color: var(--text-soft);
+    user-select: none;
+  }
+  .chip input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .chip:hover {
+    border-color: var(--pink-300);
+    transform: translateY(-2px);
+  }
+  .chip:has(input:checked) {
+    background: linear-gradient(135deg, var(--pink-300), var(--pink-500));
+    color: white;
+    border-color: var(--pink-500);
+    box-shadow: 0 6px 18px rgba(255, 107, 157, 0.38);
+    transform: translateY(-2px) scale(1.05);
+  }
+  .chip[data-day="6"]:has(input:checked) {
+    background: linear-gradient(135deg, var(--lavender), #b89aff);
+    border-color: #b89aff;
+    box-shadow: 0 6px 18px rgba(184, 154, 255, 0.4);
+  }
+  .chip[data-day="0"]:has(input:checked) {
+    background: linear-gradient(135deg, #ffc0a8, #ff9d80);
+    border-color: #ff9d80;
+    box-shadow: 0 6px 18px rgba(255, 157, 128, 0.4);
+  }
+
+  .hint {
+    text-align: center;
+    margin-top: 18px;
+    color: var(--text-soft);
+    font-size: 0.92rem;
+  }
+  .hint strong {
+    font-family: 'Gaegu', cursive;
+    color: var(--pink-600);
+    font-size: 1.2em;
+    margin: 0 2px;
+  }
+
+  /* DAY INPUTS */
+  #dayInputs {
+    background: rgba(255, 245, 250, 0.55);
+    border-radius: 18px;
+    padding: 6px 18px;
+    border: 1.5px dashed var(--border);
+  }
+  .day-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px dashed rgba(255, 208, 226, 0.6);
+    flex-wrap: wrap;
+  }
+  .day-row:last-child { border-bottom: none; }
+
+  .day-row .day-name {
+    width: 56px;
+    font-family: 'Gaegu', cursive;
+    font-weight: 700;
+    font-size: 1.25rem;
+    color: var(--pink-600);
+    flex-shrink: 0;
+  }
+  .day-row .input-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+  }
+  .day-row input[type="number"] {
+    width: 64px;
+    text-align: center;
+    font-size: 0.95rem;
+    padding: 8px 10px;
+    border-radius: 10px;
+    -moz-appearance: textfield;
+  }
+  .day-row input[type="number"]::-webkit-outer-spin-button,
+  .day-row input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  .day-row .unit-label {
+    color: var(--text-soft);
+    font-size: 0.92rem;
+  }
+  .day-row.today {
+    background: linear-gradient(90deg, rgba(255, 215, 232, 0.65), rgba(255, 215, 232, 0.05));
+    margin: 0 -18px;
+    padding: 14px 22px;
+    border-radius: 12px;
+    border-bottom-color: transparent;
+  }
+  .day-row.today + .day-row,
+  .day-row + .day-row.today { border-top: 1px dashed rgba(255, 208, 226, 0.6); }
+  .day-row .live-time {
+    font-family: 'Gaegu', cursive;
+    font-weight: 700;
+    font-size: 1.15rem;
+    color: var(--pink-600);
+    font-variant-numeric: tabular-nums;
+    flex: 1;
+  }
+  .today-marker {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.72rem;
+    color: white;
+    background: linear-gradient(135deg, var(--pink-400), var(--pink-500));
+    padding: 4px 11px;
+    border-radius: 999px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    box-shadow: 0 2px 6px rgba(255, 107, 157, 0.32);
+  }
+  .empty-msg {
+    text-align: center;
+    padding: 24px 12px;
+    color: var(--text-soft);
+    font-size: 0.92rem;
+  }
+
+  /* BIG DISPLAY */
+  .display-section {
+    margin: 40px -8px 24px;
+    text-align: center;
+    padding: 36px 24px 32px;
+    background:
+      radial-gradient(circle at 30% 30%, rgba(255, 230, 240, 0.85), transparent 70%),
+      radial-gradient(circle at 70% 70%, rgba(212, 182, 255, 0.4), transparent 70%),
+      linear-gradient(135deg, #fff7fb, #ffe9f2);
+    border-radius: 28px;
+    border: 2px solid rgba(255, 208, 226, 0.7);
+    box-shadow:
+      inset 0 2px 0 rgba(255, 255, 255, 0.7),
+      0 8px 24px rgba(255, 143, 183, 0.18);
+    position: relative;
+    overflow: hidden;
+  }
+  .display-section::before,
+  .display-section::after {
+    content: '✿';
+    position: absolute;
+    color: var(--pink-300);
+    font-size: 1.4rem;
+    opacity: 0.7;
+  }
+  .display-section::before { top: 16px; left: 20px; }
+  .display-section::after  { bottom: 16px; right: 20px; }
+
+  .display-label {
+    font-family: 'Gowun Dodum', sans-serif;
+    font-size: 1.05rem;
+    color: var(--pink-500);
+    letter-spacing: 0.18em;
+    margin-bottom: 22px;
+    font-weight: 700;
+  }
+
+  .time-big {
+    font-family: 'Gaegu', cursive;
+    font-size: clamp(1.9rem, 7vw, 3.2rem);
+    font-weight: 700;
+    color: var(--pink-600);
+    letter-spacing: -0.01em;
+    line-height: 1.15;
+    text-shadow:
+      2px 2px 0 rgba(255, 208, 226, 0.55),
+      0 4px 18px rgba(255, 107, 157, 0.18);
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.05em 0.18em;
+  }
+  .time-unit { display: inline-flex; align-items: baseline; }
+  .time-big .num {
+    display: inline-block;
+    min-width: 1.5em;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+  }
+  .time-big .num.ms {
+    min-width: 2.1em;
+    font-size: 0.62em;
+    color: var(--pink-400);
+    opacity: 0.92;
+    animation: shimmer 2s ease-in-out infinite;
+  }
+  @keyframes shimmer {
+    0%, 100% { opacity: 0.85; }
+    50%      { opacity: 1; }
+  }
+  .time-big .unit {
+    font-size: 0.36em;
+    color: var(--pink-400);
+    margin: 0 0.05em 0 0.08em;
+    font-family: 'Gowun Dodum', sans-serif;
+    font-weight: 400;
+    letter-spacing: 0.05em;
+    align-self: center;
+  }
+  .time-big.zero {
+    color: #6dbf9a;
+    text-shadow:
+      2px 2px 0 rgba(184, 232, 210, 0.55),
+      0 4px 18px rgba(109, 191, 154, 0.18);
+  }
+  .time-big.zero .num.ms,
+  .time-big.zero .unit { color: #8fcfae; }
+
+  /* SMALL STATS */
+  .display-small-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 14px;
+  }
+  .small-stat {
+    background: rgba(255, 255, 255, 0.65);
+    border: 1.5px solid var(--border);
+    border-radius: 16px;
+    padding: 16px 18px;
+    text-align: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .small-stat:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+  .small-label {
+    font-size: 0.92rem;
+    color: var(--text-soft);
+    letter-spacing: 0.06em;
+    margin-bottom: 10px;
+    font-weight: 700;
+  }
+  .small-value {
+    font-family: 'Gaegu', cursive;
+    font-weight: 700;
+    font-size: 1.35rem;
+    color: var(--pink-600);
+    font-variant-numeric: tabular-nums;
+  }
+
+  footer {
+    text-align: center;
+    margin-top: 26px;
+    color: var(--text-soft);
+    font-size: 0.78rem;
+    opacity: 0.75;
+  }
+  footer .heart-mini {
+    display: inline-block;
+    width: 0.85em;
+    height: 0.85em;
+    color: var(--pink-400);
+    vertical-align: -2px;
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 600px) {
+    body { padding: 16px 10px; }
+    .app { padding: 32px 22px; border-radius: 24px; }
+    header h1 { font-size: 2.3rem; }
+    .day-chips { gap: 6px; }
+    .chip { width: 44px; height: 44px; font-size: 1.1rem; }
+    .day-row .day-name { width: 44px; font-size: 1.1rem; }
+    .day-row input[type="number"] { width: 56px; }
+    #checkIn { font-size: 1.4rem; }
+    .time-big { font-size: clamp(1.7rem, 9vw, 2.4rem); }
+    .display-small-section { grid-template-columns: 1fr; }
+    .display-section { margin: 32px -4px 20px; padding: 28px 18px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-decor"><span></span></div>
+
+<main class="app">
+  <header>
+    <h1>
+      <span class="heart-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.5-7 10-7 10z"/></svg></span>
+      주간 근무 계산기
+      <span class="heart-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.5-7 10-7 10z"/></svg></span>
+    </h1>
+  </header>
+
+  <section class="check-in-section">
+    <label class="section-label" for="checkIn">오늘 출근 시간</label>
+    <input type="time" id="checkIn" value="09:00">
+  </section>
+
+  <section class="workdays-section">
+    <span class="section-label">일해야 되는 날</span>
+    <div class="day-chips" id="dayChips">
+      <label class="chip" data-day="1"><input type="checkbox" checked><span>월</span></label>
+      <label class="chip" data-day="2"><input type="checkbox" checked><span>화</span></label>
+      <label class="chip" data-day="3"><input type="checkbox" checked><span>수</span></label>
+      <label class="chip" data-day="4"><input type="checkbox" checked><span>목</span></label>
+      <label class="chip" data-day="5"><input type="checkbox" checked><span>금</span></label>
+      <label class="chip" data-day="6"><input type="checkbox"><span>토</span></label>
+      <label class="chip" data-day="0"><input type="checkbox"><span>일</span></label>
+    </div>
+    <p class="hint">이번 주에 일해야 하는 시간은 <strong id="totalHours">40</strong>시간이에요</p>
+  </section>
+
+  <section class="day-times-section">
+    <span class="section-label">요일별 일한 시간</span>
+    <div id="dayInputs"></div>
+  </section>
+
+  <section class="display-section">
+    <p class="display-label">남은 시간</p>
+    <div class="time-big" id="remaining">
+      <span class="time-unit"><span class="num" id="rh">00</span><span class="unit">h</span></span>
+      <span class="time-unit"><span class="num" id="rm">00</span><span class="unit">m</span></span>
+      <span class="time-unit"><span class="num" id="rs">00</span><span class="unit">s</span></span>
+      <span class="time-unit"><span class="num ms" id="rms">000</span><span class="unit">ms</span></span>
+    </div>
+  </section>
+
+  <section class="display-small-section">
+    <div class="small-stat">
+      <p class="small-label">오늘 일한 시간</p>
+      <p class="small-value" id="todayWorked">--:--:--</p>
+    </div>
+    <div class="small-stat">
+      <p class="small-label">정시 퇴근까지</p>
+      <p class="small-value" id="untilEnd">--:--:--</p>
+    </div>
+  </section>
+
+  <footer>
+    <span class="heart-mini"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.5-7 10-7 10z"/></svg></span>
+  </footer>
+</main>
+
+<script>
+(function () {
+  const HOURS_PER_DAY = 8;
+  const MS_PER_DAY = HOURS_PER_DAY * 3600 * 1000;
+  const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+
+  const checkInInput = document.getElementById('checkIn');
+  const totalHoursEl = document.getElementById('totalHours');
+  const dayInputsEl  = document.getElementById('dayInputs');
+  const dayChips     = document.querySelectorAll('#dayChips input[type="checkbox"]');
+
+  const rh = document.getElementById('rh');
+  const rm = document.getElementById('rm');
+  const rs = document.getElementById('rs');
+  const rms = document.getElementById('rms');
+  const remainingEl   = document.getElementById('remaining');
+  const todayWorkedEl = document.getElementById('todayWorked');
+  const untilEndEl    = document.getElementById('untilEnd');
+
+  const dayState = {};
+
+  const pad = (n, l = 2) => String(n).padStart(l, '0');
+
+  const getCheckedDays = () =>
+    [...dayChips]
+      .filter(c => c.checked)
+      .map(c => +c.closest('.chip').dataset.day);
+
+  function getCheckInDate() {
+    const v = checkInInput.value;
+    if (!v) return null;
+    const parts = v.split(':').map(Number);
+    if (parts.length < 2 || isNaN(parts[0]) || isNaN(parts[1])) return null;
+    const d = new Date();
+    d.setHours(parts[0], parts[1], 0, 0);
+    return d;
+  }
+
+  function makeEl(tag, opts) {
+    const el = document.createElement(tag);
+    if (!opts) return el;
+    if (opts.cls) el.className = opts.cls;
+    if (opts.text != null) el.textContent = opts.text;
+    if (opts.attrs) {
+      for (const k in opts.attrs) {
+        const v = opts.attrs[k];
+        if (v === true) el.setAttribute(k, '');
+        else if (v != null && v !== false) el.setAttribute(k, v);
+      }
+    }
+    return el;
+  }
+
+  function clearChildren(node) {
+    while (node.firstChild) node.removeChild(node.firstChild);
+  }
+
+  function buildEmptyMessage() {
+    return makeEl('p', { cls: 'empty-msg', text: '이번주 근무일을 먼저 선택해주세요 ✿' });
+  }
+
+  function buildTodayRow(d) {
+    const row = makeEl('div', { cls: 'day-row today' });
+    row.appendChild(makeEl('span', { cls: 'day-name', text: dayNames[d] }));
+    const live = makeEl('span', { cls: 'live-time', text: '--:--:--' });
+    live.dataset.live = 'today';
+    row.appendChild(live);
+    row.appendChild(makeEl('span', { cls: 'today-marker', text: '오늘' }));
+    return row;
+  }
+
+  function buildPastRow(d) {
+    const state = dayState[d] || { h: '', m: '' };
+    const row = makeEl('div', { cls: 'day-row' });
+    row.appendChild(makeEl('span', { cls: 'day-name', text: dayNames[d] }));
+
+    const group = makeEl('div', { cls: 'input-group' });
+    const hInput = makeEl('input', {
+      attrs: {
+        type: 'number', min: '0', max: '24', placeholder: '0',
+        'data-day': d, 'data-type': 'hours', inputmode: 'numeric'
+      }
+    });
+    hInput.value = state.h;
+    group.appendChild(hInput);
+    group.appendChild(makeEl('span', { cls: 'unit-label', text: '시간' }));
+
+    const mInput = makeEl('input', {
+      attrs: {
+        type: 'number', min: '0', max: '59', placeholder: '0',
+        'data-day': d, 'data-type': 'minutes', inputmode: 'numeric'
+      }
+    });
+    mInput.value = state.m;
+    group.appendChild(mInput);
+    group.appendChild(makeEl('span', { cls: 'unit-label', text: '분' }));
+
+    row.appendChild(group);
+    return row;
+  }
+
+  function buildDayInputs() {
+    const checked = getCheckedDays();
+    clearChildren(dayInputsEl);
+
+    if (checked.length === 0) {
+      dayInputsEl.appendChild(buildEmptyMessage());
+      return;
+    }
+
+    const today = new Date().getDay();
+    const order = [1, 2, 3, 4, 5, 6, 0];
+
+    order.forEach(d => {
+      if (!checked.includes(d)) return;
+      const row = (d === today) ? buildTodayRow(d) : buildPastRow(d);
+      dayInputsEl.appendChild(row);
+    });
+  }
+
+  function getPastWorkedMs(checkedDays, today) {
+    let total = 0;
+    Object.keys(dayState).forEach(day => {
+      const d = +day;
+      if (!checkedDays.includes(d)) return;
+      if (d === today) return;
+      const s = dayState[d];
+      const h = +s.h || 0;
+      const m = +s.m || 0;
+      total += (h * 3600 + m * 60) * 1000;
+    });
+    return total;
+  }
+
+  function formatHMS(ms) {
+    if (ms < 0) ms = 0;
+    const totalSec = Math.floor(ms / 1000);
+    const h = Math.floor(totalSec / 3600);
+    const m = Math.floor((totalSec % 3600) / 60);
+    const s = totalSec % 60;
+    return pad(h) + ':' + pad(m) + ':' + pad(s);
+  }
+
+  function update() {
+    const today = new Date().getDay();
+    const checked = getCheckedDays();
+    const totalMs = checked.length * MS_PER_DAY;
+    totalHoursEl.textContent = checked.length * HOURS_PER_DAY;
+
+    const checkIn = getCheckInDate();
+    const todayIsWorkday = checked.includes(today);
+
+    let workedMs = getPastWorkedMs(checked, today);
+    let todayMs = 0;
+    let untilEndMs = 0;
+
+    if (todayIsWorkday && checkIn) {
+      const now = Date.now();
+      todayMs = Math.max(0, now - checkIn.getTime());
+      const endTime = checkIn.getTime() + MS_PER_DAY;
+      untilEndMs = Math.max(0, endTime - now);
+      workedMs += todayMs;
+    }
+
+    const remainingMs = Math.max(0, totalMs - workedMs);
+
+    const rSec = Math.floor(remainingMs / 1000);
+    const rH = Math.floor(rSec / 3600);
+    const rM = Math.floor((rSec % 3600) / 60);
+    const rS = rSec % 60;
+    const rMs = remainingMs % 1000;
+
+    rh.textContent  = pad(rH);
+    rm.textContent  = pad(rM);
+    rs.textContent  = pad(rS);
+    rms.textContent = pad(rMs, 3);
+
+    remainingEl.classList.toggle('zero', remainingMs <= 0);
+
+    const liveEl = dayInputsEl.querySelector('[data-live="today"]');
+    if (liveEl) {
+      liveEl.textContent = checkIn ? formatHMS(todayMs) : '출근 시간을 입력하세요';
+    }
+
+    if (todayIsWorkday) {
+      if (checkIn) {
+        todayWorkedEl.textContent = formatHMS(todayMs);
+        untilEndEl.textContent    = untilEndMs <= 0 ? '퇴근!' : formatHMS(untilEndMs);
+      } else {
+        todayWorkedEl.textContent = '--:--:--';
+        untilEndEl.textContent    = '--:--:--';
+      }
+    } else {
+      todayWorkedEl.textContent = '오늘은 휴일';
+      untilEndEl.textContent    = '오늘은 휴일';
+    }
+  }
+
+  dayChips.forEach(c => {
+    c.addEventListener('change', () => {
+      buildDayInputs();
+      update();
+    });
+  });
+
+  checkInInput.addEventListener('input', update);
+
+  dayInputsEl.addEventListener('input', e => {
+    const t = e.target;
+    if (t.matches('input[type="number"]')) {
+      const day = +t.dataset.day;
+      const type = t.dataset.type;
+      const key = type === 'hours' ? 'h' : 'm';
+      if (!dayState[day]) dayState[day] = { h: '', m: '' };
+      dayState[day][key] = t.value;
+      update();
+    }
+  });
+
+  buildDayInputs();
+  update();
+
+  function tick() {
+    update();
+    requestAnimationFrame(tick);
+  }
+  tick();
+})();
+</script>
+
+</body>
+</html>
